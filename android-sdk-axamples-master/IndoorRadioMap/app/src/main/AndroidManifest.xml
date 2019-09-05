@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="here.com">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" android:maxSdkVersion="22" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="com.here.android.maps.appid"
+            android:value="LKdRF43EDAk7At7rIkxw" />
+        <meta-data
+            android:name="com.here.android.maps.apptoken"
+            android:value="Rd_HZRsbi26sR03AA552Fw" />
+        <meta-data
+            android:name="com.here.android.maps.license.key"
+            android:value="RBbSoKjDn827g3JIiElH15ezgFZ0I0Czw6a8QGLgjdlkJBE2dp6lIEx0VeoE1bSAN7W+gFdGSRHHD4PHmeooBQdCzyOsdxDnpiyRgUVamqm68RiPcrY6UQHWX3Piz5Wnd5gIvNShLuwBhqtaq3Hg0ASyn+9Ly1mF2fYE+U0e5oQzK1Sgvhn5i11IH1AZiusr4rqm+z5WwzMxA3Yue+WIF00HbYYQRiS6iE29SbNQJFdjO9ZrZNcVVB/qiyDDxfMNokVNqM7/jL7cCa+IucBlKMr5nlPiw+IDaJGrVA4bu5Z2AKHn4etn1UOkAjvgFApcLcSujo38dCzIeL7jSZbFBWQriHuvlkl8MeMEq1vol3zzHDXmJeFSZpzhHPmHTDBX7ZL3mnZehUpYHwpExF77CS50FmCK6h8J9Ys1I670YAyEw4b6fdZgyc7C9Aj0qN+20hENCZ+QZE9VCuhaLDfy4QfqnZjZulcd3Sy+H7mUx1H7QJGFqkjn7VooUnsB/kJ4Lh7KIcwMcMv38MCcIeZ/RYujNp/VPMT+pJjMkFeRGwRDKP7jAWmejhbQAWyd36w7OwnxzqNrYCdSTvIcnsEU11Y7dW1o41vOotJuWexn3s4bvIhJ/StCRTszVBBt+CozErQjvbGJ71Q+urCqTy4EqJtuUzt1HERwNNpSObfzBcA=" />
+
+        <service
+            android:name="com.here.android.mpa.service.MapService"
+            android:label="IndoorMapService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="IndoorMapService">
+                </action>
+            </intent-filter>
+        </service>
+
+        <!-- HERE Positioning Service definition. -->
+        <service
+            android:name="com.here.services.internal.LocationService"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":remote">
+        </service>
+
+    </application>
+
+</manifest>
