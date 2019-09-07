@@ -79,10 +79,10 @@ public class MainActivity extends AppCompatActivity {
                                               GeoPosition position, boolean isMapMatched) {
                     // set the center only when the app is in the foreground
                     // to reduce CPU consumption
-                    if (!paused) {
-                        map.setCenter(position.getCoordinate(),
-                                Map.Animation.NONE);
-                    }
+//                    if (!paused) { //эта штука меня бесит
+//                        map.setCenter(position.getCoordinate(),
+//                                Map.Animation.NONE);
+//                    }
                 }
 
                 public void onPositionFixChanged(PositioningManager.LocationMethod method,
@@ -277,7 +277,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 mapPolygon.setLineColor(Color.RED);
 
-                                mapPolygon.setFillColor(Color.argb(0.2f, 6.0f,184.0f,124.0f));
+                                mapPolygon.setFillColor(Color.WHITE);
 //
                                 map.addMapObject(mapPolygon);
 
