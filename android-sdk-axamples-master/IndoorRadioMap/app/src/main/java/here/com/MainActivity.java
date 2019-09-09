@@ -10,8 +10,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -26,6 +28,7 @@ import com.here.android.mpa.common.LocationDataSourceHERE;
 import com.here.android.mpa.common.OnEngineInitListener;
 import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
+import com.here.android.mpa.mapping.MapObject;
 import com.here.android.mpa.mapping.MapPolygon;
 import com.here.android.mpa.mapping.MapRoute;
 import com.here.android.mpa.mapping.SupportMapFragment;
@@ -53,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
     private Map map = null;
 
     //MapRoute mapRoute;
+
+    ArrayList<MapObject> Mlist = new ArrayList<MapObject>();
 
     // map fragment embedded in this activity
     private SupportMapFragment mapFragment = null;
@@ -152,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
                         // Set the zoom level to the average between min and max
                         map.setZoomLevel((map.getMaxZoomLevel() + map.getMinZoomLevel()) / 2);
                         map.setExtrudedBuildingsVisible(false);
-                        requestIndoorLayer ();
+                        requestIndoorLayer (false);
 
 
 
@@ -179,6 +184,15 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    public void onToggleClicked(View view) {
+
+        // включена ли кнопка
+        boolean on = ((ToggleButton) view).isChecked();
+        map.removeMapObjects(Mlist);
+        Mlist.clear();
+        requestIndoorLayer(on);
     }
 
     /**
@@ -226,8 +240,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void requestIndoorLayer () {
-        String indoorUrl = "https://xyz.api.here.com/hub/spaces/LXuM0dZr/iterate?access_token=AK-64RQUyn4l-H655k1-zn0";
+    public void requestIndoorLayer (boolean floor) {
+        String indoorUrl;
+        if (!floor) {
+            indoorUrl = "https://xyz.api.here.com/hub/spaces/LXuM0dZr/iterate?access_token=AK-64RQUyn4l-H655k1-zn0";
+        } else {
+            indoorUrl = "https://xyz.api.here.com/hub/spaces/p1Zn28A5/iterate?access_token=AFSE60JQ53Wx69wz2nMe82Y";
+        }
 
         RequestQueue queue = Volley.newRequestQueue(this);
 
@@ -278,6 +297,8 @@ public class MainActivity extends AppCompatActivity {
                                 mapPolygon.setLineColor(Color.RED);
 
                                 mapPolygon.setFillColor(Color.WHITE);
+
+                                Mlist.add(mapPolygon);
 //
                                 map.addMapObject(mapPolygon);
 
