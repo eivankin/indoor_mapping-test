@@ -24,4 +24,13 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:onClick="onToggleClicked" />
 
+    <Button
+        android:id="@+id/button"
+        android:layout_width="210dp"
+        android:layout_height="55dp"
+        android:text="Построить маршрут"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:onClick="onButtonClicked" />
+
 </android.support.constraint.ConstraintLayout>

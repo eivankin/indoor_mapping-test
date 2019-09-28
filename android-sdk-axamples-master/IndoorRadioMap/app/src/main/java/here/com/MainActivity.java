@@ -23,13 +23,19 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.here.android.mpa.common.GeoCoordinate;
 import com.here.android.mpa.common.GeoPolygon;
+import com.here.android.mpa.common.GeoPolyline;
 import com.here.android.mpa.common.GeoPosition;
+import com.here.android.mpa.common.IconCategory;
+import com.here.android.mpa.common.Image;
 import com.here.android.mpa.common.LocationDataSourceHERE;
 import com.here.android.mpa.common.OnEngineInitListener;
 import com.here.android.mpa.common.PositioningManager;
 import com.here.android.mpa.mapping.Map;
+import com.here.android.mpa.mapping.MapLabeledMarker;
 import com.here.android.mpa.mapping.MapObject;
+import com.here.android.mpa.mapping.MapOverlayType;
 import com.here.android.mpa.mapping.MapPolygon;
+import com.here.android.mpa.mapping.MapPolyline;
 import com.here.android.mpa.mapping.MapRoute;
 import com.here.android.mpa.mapping.SupportMapFragment;
 import com.here.android.mpa.routing.CoreRouter;
@@ -44,12 +50,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static com.here.android.mpa.common.LocationDataSourceHERE.IndoorPositioningMode.DRAFT;
+import static java.lang.Math.round;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -57,7 +65,12 @@ public class MainActivity extends AppCompatActivity {
     // map embedded in the map fragment
     private Map map = null;
 
-    MapRoute mapRoute;
+    MapPolyline route;
+    MapLabeledMarker marker;
+
+    boolean floor = false;
+    boolean routing = false;
+    List<GeoCoordinate> rPoints = new ArrayList<>();
 
     ArrayList<MapObject> Mlist = new ArrayList<MapObject>();
 
@@ -86,9 +99,10 @@ public class MainActivity extends AppCompatActivity {
                                               GeoPosition position, boolean isMapMatched) {
                     // set the center only when the app is in the foreground
                     // to reduce CPU consumption
-//                    if (!paused) { //эта штука меня бесит
-//                        map.setCenter(new GeoCoordinate(51.680793, 39.184382), Map.Animation.NONE);
-//                    }
+                    if (!paused) { //эта штука меня бесит
+                        calculateRoute(false);
+                        //map.setCenter(new GeoCoordinate(51.680793, 39.184382), Map.Animation.NONE);
+                    }
                 }
 
                 public void onPositionFixChanged(PositioningManager.LocationMethod method,
@@ -158,11 +172,11 @@ public class MainActivity extends AppCompatActivity {
                         // Set the zoom level to the average between min and max
                         map.setZoomLevel((map.getMaxZoomLevel() + map.getMinZoomLevel()) / 2);
                         map.setExtrudedBuildingsVisible(false);
-                        requestIndoorLayer (false);
+                        requestIndoorLayer ();
 
 
 
-                        calculateRoute();
+                        //calculateRoute();
 
                         LocationDataSourceHERE m_hereDataSource = LocationDataSourceHERE.getInstance();
                         m_hereDataSource.setIndoorPositioningMode(LocationDataSourceHERE.IndoorPositioningMode.DRAFT);
@@ -190,11 +204,14 @@ public class MainActivity extends AppCompatActivity {
     public void onToggleClicked(View view) {
 
         // включена ли кнопка
-        boolean on = ((ToggleButton) view).isChecked();
-        map.removeMapObjects(Mlist);
+        ArrayList<MapObject> Mlist1 = Mlist;
+        floor = ((ToggleButton) view).isChecked();
         Mlist.clear();
-        requestIndoorLayer(on);
-        calculateRoute();
+        requestIndoorLayer();
+        map.removeMapObjects(Mlist1);
+        Mlist1.clear();
+        addPoints();
+        //calculateRoute(false);
     }
 
     /**
@@ -242,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void requestIndoorLayer (boolean floor) {
+    public void requestIndoorLayer () {
         String indoorUrl;
         if (!floor) {
             indoorUrl = "https://xyz.api.here.com/hub/spaces/LXuM0dZr/iterate?access_token=AK-64RQUyn4l-H655k1-zn0";
@@ -301,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
                                 mapPolygon.setFillColor(Color.WHITE);
 
                                 Mlist.add(mapPolygon);
-//
+                                    mapPolygon.setOverlayType(MapOverlayType.POI_OVERLAY);
                                 map.addMapObject(mapPolygon);
 
 
@@ -324,49 +341,106 @@ public class MainActivity extends AppCompatActivity {
         queue.add(stringRequest);
     }
 
-    public void calculateRoute () {
-
-        // Declare the variable (the CoreRouter)
-        CoreRouter router = new CoreRouter();
-
-        // Create the RoutePlan and add two waypoints
-        RoutePlan routePlan = new RoutePlan();
-        routePlan.addWaypoint(new RouteWaypoint(new GeoCoordinate(51.67991, 39.18473)));
-        routePlan.addWaypoint(new RouteWaypoint(new GeoCoordinate(51.67974, 39.18092)));
-
-        // Create the RouteOptions and set its transport mode & routing type
-        RouteOptions routeOptions = new RouteOptions();
-        routeOptions.setTransportMode(RouteOptions.TransportMode.PEDESTRIAN);
-        routeOptions.setRouteType(RouteOptions.Type.SHORTEST);
-
-        routePlan.setRouteOptions(routeOptions);
-
-        // Calculate the route
-        router.calculateRoute(routePlan, new RouteListener());
-
-    }
-
-    private class RouteListener implements CoreRouter.Listener {
-
-        // Method defined in Listener
-        public void onProgress(int percentage) {
-            // Display a message indicating calculation progress
-        }
-
-        // Method defined in Listener
-        public void onCalculateRouteFinished(List<RouteResult> routeResult, RoutingError error) {
-            // If the route was calculated successfully
-            if (error == RoutingError.NONE) {
-                // Render the route on the map
-                mapRoute = new MapRoute(routeResult.get(0).getRoute());
-                map.addMapObject(mapRoute);
+    public void calculateRoute (boolean first) {
+        if (routing) {
+            GeoCoordinate coord = posManager.getPosition().getCoordinate();
+            coord.setAltitude(0);
+            if (rPoints.size() > 2) {
+                List<GeoCoordinate> p1 = new ArrayList<>(2);
+                List<GeoCoordinate> p2 = new ArrayList<>(2);
+                p1.add(coord);
+                p1.add(rPoints.get(2));
+                p2.add(rPoints.get(1));
+                p2.add(rPoints.get(2));
+                GeoPolyline t1 = new GeoPolyline(p1);
+                GeoPolyline t2 = new GeoPolyline(p2);
+                if (t1.length() <= t2.length()) {
+                    rPoints.remove(1);
+                }
             }
-            else {
+            if (!first) rPoints.set(0, coord);
+            map.removeMapObject(route);
+            GeoPolyline rLine = new GeoPolyline(rPoints);
+            route = new MapPolyline(rLine);
+            route.setLineColor(Color.CYAN);
+            route.setOutlineColor(Color.BLACK);
+            route.setOutlineWidth(1);
+            route.setLineWidth(8);
+            route.setOverlayType(MapOverlayType.POI_OVERLAY);
+            map.addMapObject(route);
+            if (first) {
                 Toast toast = Toast.makeText(getApplicationContext(),
-                        "Ошибка построения маршрута " + error, Toast.LENGTH_SHORT);
+                        "Длина маршрута: " + round(rLine.length()) + " м, примерное время в пути: " + round(rLine.length() / 60) + " минут", Toast.LENGTH_SHORT);
                 toast.show();
             }
         }
+    }
 
+    public void onButtonClicked(View view) {
+//        Image mark = new Image();
+//        try {
+//            mark.setImageFile("c:/android/mark.png");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+
+
+        if (!routing) {
+            routing = true;
+            addPoints();
+        }
+        calculateRoute(true);
+    }
+
+    private void addPoints ()
+    {
+        map.removeMapObject(marker);
+        GeoCoordinate coord = posManager.getPosition().getCoordinate();
+        coord.setAltitude(0);
+        rPoints.clear();
+        rPoints.add(coord);
+        if (!floor) {
+            Image img = new Image();
+            try {
+                img.setImageResource(R.drawable.marker);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            marker = new MapLabeledMarker(new GeoCoordinate(51.67994813196171, 39.180479579322565));
+            marker.setIcon(img);
+            marker.setOverlayType(MapOverlayType.FOREGROUND_OVERLAY);
+            map.addMapObject(marker);
+            rPoints.add(new GeoCoordinate(51.679293, 39.184565));
+            rPoints.add(new GeoCoordinate(51.681231, 39.184325));
+            rPoints.add(new GeoCoordinate(51.681304, 39.184267));
+            rPoints.add(new GeoCoordinate(51.681357, 39.184179));
+            rPoints.add(new GeoCoordinate(51.681394, 39.184007));
+            rPoints.add(new GeoCoordinate(51.681315, 39.183253));
+            rPoints.add(new GeoCoordinate(51.680749, 39.180466));
+            rPoints.add(new GeoCoordinate(51.67979596421586, 39.18093968823298));
+            rPoints.add(new GeoCoordinate(51.6797388356649, 39.18065173274834));
+            rPoints.add(new GeoCoordinate(51.67978950013267, 39.180497330003135));
+            rPoints.add(new GeoCoordinate(51.67989746767144, 39.18043844282476));
+            rPoints.add(new GeoCoordinate(51.679924896277, 39.18056495164337));
+            rPoints.add(new GeoCoordinate(51.67996106008188, 39.18054269285345));
+            rPoints.add(new GeoCoordinate(51.67994813196171, 39.180479579322565));
+        }
+        else {
+            Image img = new Image();
+            try {
+                img.setImageResource(R.drawable.marker1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            marker = new MapLabeledMarker(new GeoCoordinate(51.67978163172915, 39.18056406880374));
+            marker.setIcon(img);
+            marker.setOverlayType(MapOverlayType.FOREGROUND_OVERLAY);
+            map.addMapObject(marker);
+            rPoints.add(new GeoCoordinate(51.67994813196171, 39.180479579322565));
+            rPoints.add(new GeoCoordinate(51.679926567251584, 39.18049103361452));
+            rPoints.add(new GeoCoordinate(51.67981669176847, 39.180501467212956));
+            rPoints.add(new GeoCoordinate(51.67977495362334, 39.18052132470682));
+            rPoints.add(new GeoCoordinate(51.67978163172915, 39.18056406880374));
+        }
     }
 }
