@@ -49,13 +49,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.here.android.mpa.common.LocationDataSourceHERE.IndoorPositioningMode.DRAFT;
+
 public class MainActivity extends AppCompatActivity {
 
 
     // map embedded in the map fragment
     private Map map = null;
 
-    //MapRoute mapRoute;
+    MapRoute mapRoute;
 
     ArrayList<MapObject> Mlist = new ArrayList<MapObject>();
 
@@ -85,8 +87,7 @@ public class MainActivity extends AppCompatActivity {
                     // set the center only when the app is in the foreground
                     // to reduce CPU consumption
 //                    if (!paused) { //эта штука меня бесит
-//                        map.setCenter(position.getCoordinate(),
-//                                Map.Animation.NONE);
+//                        map.setCenter(new GeoCoordinate(51.680793, 39.184382), Map.Animation.NONE);
 //                    }
                 }
 
@@ -161,10 +162,10 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-                        //calculateRoute ();
+                        calculateRoute();
 
                         LocationDataSourceHERE m_hereDataSource = LocationDataSourceHERE.getInstance();
-
+                        m_hereDataSource.setIndoorPositioningMode(LocationDataSourceHERE.IndoorPositioningMode.DRAFT);
 
                         if (m_hereDataSource != null) {
                             posManager = PositioningManager.getInstance();
@@ -193,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
         map.removeMapObjects(Mlist);
         Mlist.clear();
         requestIndoorLayer(on);
+        calculateRoute();
     }
 
     /**
@@ -322,21 +324,20 @@ public class MainActivity extends AppCompatActivity {
         queue.add(stringRequest);
     }
 
-
-    /*public void calculateRoute () {
+    public void calculateRoute () {
 
         // Declare the variable (the CoreRouter)
         CoreRouter router = new CoreRouter();
 
         // Create the RoutePlan and add two waypoints
         RoutePlan routePlan = new RoutePlan();
-        routePlan.addWaypoint(new RouteWaypoint(new GeoCoordinate(55.86087, 37.48402)));
-        routePlan.addWaypoint(new RouteWaypoint(new GeoCoordinate(55.84735, 37.48964)));
+        routePlan.addWaypoint(new RouteWaypoint(new GeoCoordinate(51.67991, 39.18473)));
+        routePlan.addWaypoint(new RouteWaypoint(new GeoCoordinate(51.67974, 39.18092)));
 
         // Create the RouteOptions and set its transport mode & routing type
         RouteOptions routeOptions = new RouteOptions();
-        routeOptions.setTransportMode(RouteOptions.TransportMode.CAR);
-        routeOptions.setRouteType(RouteOptions.Type.FASTEST);
+        routeOptions.setTransportMode(RouteOptions.TransportMode.PEDESTRIAN);
+        routeOptions.setRouteType(RouteOptions.Type.SHORTEST);
 
         routePlan.setRouteOptions(routeOptions);
 
@@ -361,9 +362,11 @@ public class MainActivity extends AppCompatActivity {
                 map.addMapObject(mapRoute);
             }
             else {
-                // Display a message indicating route calculation failure
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        "Ошибка построения маршрута " + error, Toast.LENGTH_SHORT);
+                toast.show();
             }
         }
 
-    }*/
+    }
 }
