@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     MapPolyline route;
     MapLabeledMarker marker;
+    MapLabeledMarker cp;
 
     boolean floor = false;
     boolean routing = false;
@@ -204,12 +205,12 @@ public class MainActivity extends AppCompatActivity {
     public void onToggleClicked(View view) {
 
         // включена ли кнопка
-        ArrayList<MapObject> Mlist1 = Mlist;
+        //ArrayList<MapObject> Mlist1 = Mlist;
         floor = ((ToggleButton) view).isChecked();
+        map.removeMapObjects(Mlist);
         Mlist.clear();
         requestIndoorLayer();
-        map.removeMapObjects(Mlist1);
-        Mlist1.clear();
+        //Mlist1.clear();
         addPoints();
         //calculateRoute(false);
     }
@@ -395,6 +396,13 @@ public class MainActivity extends AppCompatActivity {
     private void addPoints ()
     {
         map.removeMapObject(marker);
+        map.removeMapObject(cp);
+        Image cpImg = new Image();
+        try {
+            cpImg.setImageResource(R.drawable.cp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         GeoCoordinate coord = posManager.getPosition().getCoordinate();
         coord.setAltitude(0);
         rPoints.clear();
@@ -406,11 +414,15 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            cp = new MapLabeledMarker(new GeoCoordinate(51.6797382259965, 39.18064965953605));
+            cp.setIcon(cpImg);
+            cp.setOverlayType(MapOverlayType.FOREGROUND_OVERLAY);
+            map.addMapObject(cp);
             marker = new MapLabeledMarker(new GeoCoordinate(51.67994813196171, 39.180479579322565));
             marker.setIcon(img);
             marker.setOverlayType(MapOverlayType.FOREGROUND_OVERLAY);
             map.addMapObject(marker);
-            rPoints.add(new GeoCoordinate(51.679293, 39.184565));
+            rPoints.add(new GeoCoordinate(51.68052809132096, 39.18439259144609));
             rPoints.add(new GeoCoordinate(51.681231, 39.184325));
             rPoints.add(new GeoCoordinate(51.681304, 39.184267));
             rPoints.add(new GeoCoordinate(51.681357, 39.184179));
@@ -432,15 +444,19 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            marker = new MapLabeledMarker(new GeoCoordinate(51.67978163172915, 39.18056406880374));
+            cp = new MapLabeledMarker(new GeoCoordinate(51.67977662512259, 39.180579354284774));
+            cp.setIcon(cpImg);
+            cp.setOverlayType(MapOverlayType.FOREGROUND_OVERLAY);
+            marker = new MapLabeledMarker(new GeoCoordinate(51.67977903666078, 39.18055003549911));
             marker.setIcon(img);
             marker.setOverlayType(MapOverlayType.FOREGROUND_OVERLAY);
+            map.addMapObject(cp);
             map.addMapObject(marker);
             rPoints.add(new GeoCoordinate(51.67994813196171, 39.180479579322565));
             rPoints.add(new GeoCoordinate(51.679926567251584, 39.18049103361452));
             rPoints.add(new GeoCoordinate(51.67981669176847, 39.180501467212956));
             rPoints.add(new GeoCoordinate(51.67977495362334, 39.18052132470682));
-            rPoints.add(new GeoCoordinate(51.67978163172915, 39.18056406880374));
+            rPoints.add(new GeoCoordinate(51.67977903666078, 39.18055003549911));
         }
     }
 }
