@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         paused = false;
         if (posManager != null) {
             posManager.start(
-                    PositioningManager.LocationMethod.GPS_NETWORK);
+                    PositioningManager.LocationMethod.GPS_NETWORK_INDOOR);
         }
     }
 
@@ -391,6 +391,13 @@ public class MainActivity extends AppCompatActivity {
             addPoints();
         }
         calculateRoute(true);
+    }
+
+    public void reinitPosManager(View view) {
+        posManager.stop();
+        Toast toast = Toast.makeText(getApplicationContext(),"Перезапуск...", Toast.LENGTH_SHORT);
+        toast.show();
+        posManager.start(PositioningManager.LocationMethod.INDOOR);
     }
 
     private void addPoints ()

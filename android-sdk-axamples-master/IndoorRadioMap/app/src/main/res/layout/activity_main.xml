@@ -17,20 +17,29 @@
         android:id="@+id/toggleButton"
         android:layout_width="114dp"
         android:layout_height="55dp"
+        android:onClick="onToggleClicked"
         android:text="ToggleButton"
         android:textOff="1 этаж"
         android:textOn="2 этаж"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:onClick="onToggleClicked" />
+        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/button"
         android:layout_width="210dp"
         android:layout_height="55dp"
+        android:onClick="onButtonClicked"
         android:text="Построить маршрут"
+        app:layout_constraintBottom_toTopOf="@+id/button2"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="reinitPosManager"
+        android:text="Перезапуск определения местоположения"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:onClick="onButtonClicked" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </android.support.constraint.ConstraintLayout>
